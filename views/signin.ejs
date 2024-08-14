@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script>
+        async function handleSignIn(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/signin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message);
+                }
+
+                alert(result.message); // Alert on successful signup
+                window.location.href = '/'; // Redirect to login page
+
+            } catch (error) {
+                alert(error.message); // Alert on errors
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Create Account</h2>
+        <form action="/signin" method="POST" onsubmit="handleSignIn(event)">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="gmail">Gmail ID:</label>
+            <input type="email" id="gmail" name="gmail" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <label for="confirmPassword">Confirm Password:</label>
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+            <button type="submit">Sign Up</button>
+        </form>
+        <form action="/auth/google" method="GET">
+            <button type="submit">Sign Up with Google</button>
+        </form>
+        <a href="/">Already have an account? Login</a>
+    </div>
+</body>
+</html>
