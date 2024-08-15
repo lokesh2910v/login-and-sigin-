@@ -8,6 +8,10 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('./models/user');
 require('./config/passport-setup');
 
+// for otp 
+const nodemailer = require('nodemailer');
+const dns = require('dns');
+
 const app = express();
 app.use(express.json());
 
@@ -42,19 +46,28 @@ app.get('/signin', (req, res) => {
 
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
-    const user = await User.findOne({ gmail: email });
 
-    if (!user) {
-        return res.status(400).send('User not found');
+    try {
+        const user = await User.findOne({ gmail: email });
+
+        if (!user) {
+            return res.render('login', { error: 'User not found' });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.render('login', { error: 'Invalid credentials' });
+        }
+
+        res.send(`Welcome ${user.username}`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-        return res.status(400).send('Invalid credentials');
-    }
-
-    res.redirect('/auth/dashboard');
 });
+
+
+
 
 app.post('/signin', async (req, res) => {
     const { gmail, username, password, confirmPassword } = req.body;
@@ -79,11 +92,6 @@ app.post('/signin', async (req, res) => {
 
     res.status(200).json({ message: 'Account created successfully!' });
 });
-
-
-
-
-            
 
 // google auth........
 
@@ -145,6 +153,81 @@ passport.use(new GoogleStrategy({
     }
   }
 ));
+
+
+// otp validation for signup 
+
+// // Nodemailer Transporter
+// const transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: 'astradigitalagencies@gmail.com',
+//         pass: 'ylwz fdie gona yfwi'
+//     }
+// });
+
+// // Global variable to store OTP
+// let otpCode = '';
+
+// // Function to check if the email domain exists
+// function checkEmailExists(gmail) {
+//     return new Promise((resolve, reject) => {
+//         const domain = gmail.split('@')[1];
+//         dns.resolveMx(domain, (err, addresses) => {
+//             if (err || addresses.length === 0) {
+//                 return reject('Invalid email address');
+//             }
+//             resolve(true);
+//         });
+//     });
+// }
+
+// // Route to send OTP
+// app.post('/send-otp', async (req, res) => {
+//     const { gmail } = req.body;
+    
+//     if (!gmail) {
+//         return res.status(400).send('Email is required');
+//     }
+    
+//     try {
+//         await checkEmailExists(gmail);  // Verify email domain exists
+//         otpCode = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit OTP
+        
+//         const mailOptions = {
+//             from: 'lokeshmbu2004@gmail.com',
+//             to: gmail,
+//             subject: 'Your OTP Code',
+//             text: `Your OTP code is ${otpCode}`
+//         };
+        
+//         transporter.sendMail(mailOptions, (error, info) => {
+//             if (error) {
+//                 console.error('Error sending OTP:', error);
+//                 return res.status(500).send('Error sending OTP');
+//             } else {
+//                 console.log('OTP sent:', info.response);
+//                 res.status(200).send('OTP sent successfully');
+//             }
+//         });
+//     } catch (error) {
+//         console.error('Error sending OTP:', error);
+//         res.status(400).send(error);
+//     }
+// });
+
+// // Route to verify OTP
+// app.post('/verify-otp', (req, res) => {
+//     const { gmail, otp } = req.body;
+
+//     if (otp !== otpCode.toString()) {
+//         return res.status(400).render('signup.ejs', { error: 'Invalid OTP', gmail });
+//     }
+
+//     // OTP is valid; render the registration page
+//     res.render('signup.ejs', { gmail });
+// });
+
 
 app.listen(3000, () => {
     console.log('Server started on port 3000');
