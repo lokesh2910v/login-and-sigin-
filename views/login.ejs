@@ -4,32 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/style.css">
 
     <script>
         function showAlert(message) {
             alert(message);
         }
+        function showMessage(message, type) {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = message;
+            messageElement.className = `message ${type}`;
+            messageElement.style.display = 'block';
+
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 2000);
+        }
+
     </script>
 </head>
 <body>
-    
-    <h2>Login</h2>
-    <% if (typeof error !== 'undefined') { %> <!-- Check if error is defined -->
+    <div id="message"></div>
+    <% if (typeof error !== 'undefined') { %> 
         <script>
             showAlert("<%= error %>");
-        </script>
+            </script>
     <% } %>
     <div class="container">
+        <h2>Login</h2>
         <form action="/login" method="POST">
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
             <button type="submit">Login</button>
-        </form>
-        <form action="/auth/google" method="GET">
-            <button type="submit">Login with Google</button>
         </form>
         <a href="/signin">Create a new account</a>
     </div>

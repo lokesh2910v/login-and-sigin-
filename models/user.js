@@ -14,12 +14,8 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        default: null, // Allow null by default
+        default: null, 
     },
-    googleId: {
-        type: String,
-        default: null, // Default to null for non-Google signups
-    }
 });
 
 const User = mongoose.model('User', userSchema);

@@ -4,13 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/style.css">
     <script>
+        let otpTimer;
+        let otpCooldown = false;
+
+        function showMessage(message, type) {
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = message;
+            messageElement.className = `message ${type}`;
+            messageElement.style.display = 'block';
+
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 2000);
+        }
+
         async function handleSendOtp(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData.entries());
-
+            
+            const otpButton = document.getElementById('sendOtpButton');
+            otpButton.disabled = true;
+            
+            if (otpCooldown) {
+                showMessage('Please wait before sending another OTP.', 'error');
+                otpButton.disabled = false;
+                return;
+            }
+            
             try {
                 const response = await fetch('/send-otp', {
                     method: 'POST',
@@ -19,22 +42,42 @@
                     },
                     body: JSON.stringify(data),
                 });
-
+                
                 const result = await response.json();
                 if (!response.ok) {
                     throw new Error(result.message);
                 }
-
-                alert(result.message); // Alert on successful OTP send
-
-                // Automatically set the Gmail ID in the Verify OTP block
-                document.getElementById('verifyGmail').value = data.gmail;
                 
+                showMessage(result.message, 'success');
+                document.getElementById('verifyGmail').value = data.gmail;
+                startOtpTimer();
             } catch (error) {
-                alert(error.message); // Alert on errors
+                showMessage(error.message, 'error');
+                otpButton.disabled = false;
             }
         }
         
+        function startOtpTimer() {
+            let timeLeft = 60;
+            const timerDisplay = document.getElementById('timerDisplay');
+            const otpButton = document.getElementById('sendOtpButton');
+            
+            otpCooldown = true;
+            timerDisplay.textContent = `You can resend OTP in ${timeLeft}s`;
+            
+            otpTimer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `You can resend OTP in ${timeLeft}s`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(otpTimer);
+                    otpCooldown = false;
+                    otpButton.disabled = false;
+                    timerDisplay.textContent = 'You can send the OTP again.';
+                }
+            }, 1000);
+        }
+
         async function handleVerifyOtp(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
@@ -54,39 +97,40 @@
                     throw new Error(result.message);
                 }
                 
-                alert(result.message); // Alert on successful account creation
-                window.location.href = '/'; // Redirect to login page   
-
+                showMessage(result.message, 'success');
+                window.location.href = '/';
             } catch (error) {
-                alert(error.message); // Alert on errors
+                showMessage(error.message, 'error');
             }
         }
     </script>
 </head>
 <body>
+    <div id="message"></div> 
     <div class="container">
         <h2>Create Account</h2>
         <form onsubmit="handleSendOtp(event)">
             <label for="sendGmail">Gmail ID:</label>
             <input id="sendGmail" name="gmail" type="email" required>
-            <button type="submit">Send OTP</button>
+            <button type="submit" id="sendOtpButton">Send OTP</button>
+            <span id="timerDisplay"></span>
         </form>
 
         <form onsubmit="handleVerifyOtp(event)">
-            <input type="hidden" id="verifyGmail" name="gmail" required> <!-- Ensure Gmail is here -->
+            <input type="hidden" id="verifyGmail" name="gmail" required><br><br>
             <label for="otp">Enter OTP:</label>
             <input type="text" id="otp" name="otp" required>
             <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+            <input type="text" id="username" name="username" pattern=".{2,10}" 
+                title="Username must be between 2 and 10 characters long." required>
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+            <input type="password" id="password" name="password" 
+                pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,15}" 
+                title="Password must be 8-15 characters long, include at least 1 Uppercase letter, 1 number, and 1 special character." 
+                required>
             <label for="confirmPassword">Confirm Password:</label>
             <input type="password" id="confirmPassword" name="confirmPassword" required>
             <button type="submit">Verify OTP and Create Account</button>
-        </form>
-
-        <form action="/auth/google" method="GET">
-            <button type="submit">Sign Up with Google</button>
         </form>
         <a href="/">Already have an account? Login</a>
     </div>

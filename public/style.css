@@ -42,3 +42,28 @@ a {
     text-align: center;
     color: #007BFF;
 }
+
+
+    .message {
+        position: fixed; /* Fix the position of the message at the top */
+        top: 10px; /* Distance from the top of the viewport */
+        left: 50%; /* Center the message horizontally */
+        transform: translateX(-50%); /* Adjust for exact centering */
+        padding: 10px;
+        border-radius: 5px;
+        width: 300px; /* Limited width */
+        max-width: 90%; /* Ensure it doesn’t overflow the viewport */
+        z-index: 1000; /* Ensure it stays on top of other content */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Add shadow for better visibility */
+        display: none; 
+    }
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .error {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+
