@@ -6,13 +6,13 @@
     <title>Sign Up</title>
     <link rel="stylesheet" href="/styles.css">
     <script>
-        async function handleSignIn(event) {
+        async function handleSendOtp(event) {
             event.preventDefault();
             const formData = new FormData(event.target);
             const data = Object.fromEntries(formData.entries());
 
             try {
-                const response = await fetch('/signin', {
+                const response = await fetch('/send-otp', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -25,8 +25,37 @@
                     throw new Error(result.message);
                 }
 
-                alert(result.message); // Alert on successful signup
-                window.location.href = '/'; // Redirect to login page
+                alert(result.message); // Alert on successful OTP send
+
+                // Automatically set the Gmail ID in the Verify OTP block
+                document.getElementById('verifyGmail').value = data.gmail;
+                
+            } catch (error) {
+                alert(error.message); // Alert on errors
+            }
+        }
+        
+        async function handleVerifyOtp(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const response = await fetch('/verify-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+                
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message);
+                }
+                
+                alert(result.message); // Alert on successful account creation
+                window.location.href = '/'; // Redirect to login page   
 
             } catch (error) {
                 alert(error.message); // Alert on errors
@@ -37,49 +66,25 @@
 <body>
     <div class="container">
         <h2>Create Account</h2>
-        <form action="/signin" method="POST" onsubmit="handleSignIn(event)">
+        <form onsubmit="handleSendOtp(event)">
+            <label for="sendGmail">Gmail ID:</label>
+            <input id="sendGmail" name="gmail" type="email" required>
+            <button type="submit">Send OTP</button>
+        </form>
+
+        <form onsubmit="handleVerifyOtp(event)">
+            <input type="hidden" id="verifyGmail" name="gmail" required> <!-- Ensure Gmail is here -->
+            <label for="otp">Enter OTP:</label>
+            <input type="text" id="otp" name="otp" required>
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
-            <label for="gmail">Gmail ID:</label>
-            <input type="email" id="gmail" name="gmail" required>
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
             <label for="confirmPassword">Confirm Password:</label>
             <input type="password" id="confirmPassword" name="confirmPassword" required>
-            <button type="submit">Sign Up</button>
+            <button type="submit">Verify OTP and Create Account</button>
         </form>
 
-
-                <!-- Step 1: Enter Gmail to receive OTP -->
-                <!-- <form id="emailForm" action="/send-otp" method="POST">
-                    <div class="form-group">
-                        <label for="gmail">Gmail:</label>
-                        <input type="email" id="gmail" name="gmail" required>
-                    </div>
-                    <button type="submit">Send OTP</button>
-                </form>
-         -->
-                <!-- Step 2: Enter OTP, Username, and Password -->
-                <!-- <form id="otpForm" action="/verify-otp" method="POST" style="display:none;">
-                    <div class="form-group">
-                        <label for="otp">Enter OTP:</label>
-                        <input type="text" id="otp" name="otp" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="username">Username:</label>
-                        <input type="text" id="username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password:</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="confirmPassword">Confirm Password:</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" required>
-                    </div>
-                    <button type="submit">Sign Up</button>
-                </form> -->
-        
         <form action="/auth/google" method="GET">
             <button type="submit">Sign Up with Google</button>
         </form>

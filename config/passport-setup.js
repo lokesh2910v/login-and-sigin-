@@ -13,19 +13,28 @@ passport.deserializeUser((id, done) => {
 });
 
 passport.use(new GoogleStrategy({
-    clientID: 'your_client_id',
-    clientSecret: 'your_client_secret',
+    clientID: '88602286776-f74qe8hsgc547hqa8pstqk8plhsds0r0.apps.googleusercontent.com',
+    clientSecret: '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',
     callbackURL: '/auth/google/redirect'
-}, async (accessToken, refreshToken, profile, done) => {
-    const existingUser = await User.findOne({ googleId: profile.id });
-    if (existingUser) {
-        done(null, existingUser);
-    } else {
-        const newUser = await new User({
-            googleId: profile.id,
-            username: profile.displayName,
-            gmail: profile.emails[0].value
-        }).save();
-        done(null, newUser);
+  },
+  async function(accessToken, refreshToken, profile, done) {
+    try {
+        // Use async/await to handle the findOne query
+        let user = await User.findOne({ googleId: profile.id });
+
+        if (!user) {
+            // If user does not exist, create a new user
+            user = new User({
+                username: profile.displayName,
+                gmail: profile.emails[0].value,
+                googleId: profile.id
+            });
+            await user.save(); // Save the new user
+        }
+        
+        return done(null, user); // Return the user (existing or newly created)
+    } catch (err) {
+        return done(err); // Handle any errors
     }
-}));
+  }
+));
