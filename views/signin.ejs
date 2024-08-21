@@ -98,7 +98,7 @@
                 }
                 
                 showMessage(result.message, 'success');
-                window.location.href = '/';
+                setTimeout(() => {window.location.href = '/';}, 2000);
             } catch (error) {
                 showMessage(error.message, 'error');
             }
